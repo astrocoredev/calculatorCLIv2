@@ -155,11 +155,8 @@ impl Parser {
         let mut node = self.parse_func();
         while let Some(token) = self.peek() {
             match token {
-                Token::Caret | Token::Factorial => {
+                Token::Caret => {
                     node = match self.next() {
-                        Some(Token::Factorial) => Expr::Factorial {
-                            expr: Box::new(self.parse_func())
-                        },
                         Some(Token::Caret) => Expr::Exponent {
                             left: Box::new(node),
                             right: Box::new(self.parse_func()),
