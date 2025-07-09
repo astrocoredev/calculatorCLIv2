@@ -61,6 +61,9 @@ impl Tokeniser {
                     match func_name.as_ref() {
                         "sqrt" => self.tokens.push(Token::Sqrt),
                         "ln" => self.tokens.push(Token::Ln),
+                        "sin" => self.tokens.push(Token::Sin),
+                        "cos" => self.tokens.push(Token::Cos),
+                        "tan" => self.tokens.push(Token::Tan),
                         unimpl => {
                             eprintln!("Function not implemented yet: {}", unimpl);
                             process::exit(0);
@@ -172,13 +175,22 @@ impl Parser {
 
     fn parse_func(&mut self) -> Expr {
         match self.peek() {
-            Some(Token::Sqrt) | Some(Token::Ln) => {
+            Some(Token::Sqrt) | Some(Token::Ln) | Some(Token::Sin) => {
                 match self.next() {
                     Some(Token::Sqrt) => Expr::Sqrt {
                         expr: Box::new(self.parse_paren())
                     },
                     Some(Token::Ln) => Expr::Ln {
                         expr: Box::new(self.parse_paren())
+                    },
+                    Some(Token::Sin) => Expr::Sin {
+                        angle: Box::new(self.parse_paren())
+                    },
+                    Some(Token::Cos) => Expr::Cos {
+                        angle: Box::new(self.parse_paren())
+                    },
+                    Some(Token::Tan) => Expr::Tan {
+                        angle: Box::new(self.parse_paren())
                     },
                     _ => unreachable!()
                 }
@@ -255,6 +267,9 @@ enum Token {
     Factorial,
     Sqrt,
     Ln,
+    Sin,
+    Cos,
+    Tan,
     Number(f64)
 }
 
@@ -290,6 +305,15 @@ enum Expr {
     Ln {
         expr: Box<Expr>
     },
+    Sin {
+        angle: Box<Expr>
+    },
+    Cos {
+        angle: Box<Expr>
+    },
+    Tan {
+        angle: Box<Expr>
+    },
     Number(f64),
 }
 
@@ -302,6 +326,10 @@ impl Expr {
             Expr::Multiply   { left, right } => left.evaluate() * right.evaluate(),
             Expr::Divide     { left, right } => left.evaluate() / right.evaluate(),
             Expr::Exponent   { left, right } => left.evaluate().powf(right.evaluate()),
+
+            Expr::Sin { angle } => angle.evaluate().to_radians().sin(),
+            Expr::Cos { angle } => angle.evaluate().to_radians().cos(),
+            Expr::Tan { angle } => angle.evaluate().to_radians().tan(),
 
             Expr::Factorial { expr } => (1..=expr.evaluate() as i64).product::<i64>() as f64,
             Expr::Sqrt      { expr } => expr.evaluate().sqrt(),
